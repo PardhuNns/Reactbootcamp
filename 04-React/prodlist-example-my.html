@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+    <script src="babel.min.js"></script>
+    <script src="react.development.js"></script>
+    <script src="react-dom.development.js"> </script>
+    <script type="text/babel">
+        const ProductPage = () => {
+            let [productNames, setProductNames] = React.useState([]);
+            const onAddProductNames = (value) =>{
+
+                setProductNames([...productNames,value])
+            }
+            const onDeleteProductNames = (value) =>{
+                var index = productNames.indexOf(value);
+            if (index !== -1) {
+                productNames.splice(index, 1);
+            }
+                setProductNames([productNames.remove(value)])
+            }
+            /* 
+            const productItems = []
+            for (let productName of productNames)
+                productItems.push(<li key={productName}>{productName}</li>) 
+            */
+            const productItems = productNames.map(pn => (<li key={pn}>{pn}</li>))
+            return (
+                <>
+                <h1>Products List</h1>
+                <ProductInput lableName={"ProductName"} onAddProductNames={onAddProductNames}/>
+                <ProductItems productNames={productNames} onDeleteProductNames={onDeleteProductNames}/>
+                </>
+            );
+
+        }
+        const ProductInput = ({lableName, onAddProductNames}) => {
+            let [productName, setProductName] = React.useState('');
+            const onButtonClick = () => {
+                onAddProductNames(productName);
+                setProductName('');
+            }
+            return (
+                <>
+                <label htmlFor="">{`${lableName}: `} </label>
+                <input type="text" name="" id="" value={productName} onInput={(event) => setProductName(event.target.value)}/>
+                <button onClick={onButtonClick}>Add</button>
+                </>
+            );
+
+        }
+        const ProductItems = ({productNames,onDeleteProductNames}) => {
+            let [productName, setProductName] = React.useState('');
+            const productItems = productNames.map(pn => (
+                <>
+                <li key={pn}>{pn}</li>
+                <button onClick={onDeleteProductNames}>Delete</button>
+                </>
+                ))
+            return (
+                <>
+                <h3>Products</h3>
+                <ul>
+                    {productItems}
+                </ul>
+                </>
+            );
+
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ProductPage/>)
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>

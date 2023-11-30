@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        .field{
+            margin-bottom: 5px;
+        }
+        label{
+            display: block;
+        }
+        .result{
+            margin-top: 10px;
+            font-size: 18pt;
+        }
+        .positive{
+            color: green;
+        }
+        .negative{
+            color: red;
+        }
+    </style>
+    <script src="babel.min.js"></script>
+    <script src="react.development.js"></script>
+    <script src="react-dom.development.js"></script>
+    <script type="text/babel">
+                const Greeter = () => {
+            let [greetMsg, setGreetMsg] = React.useState('[default greet message]');
+            let [userName, setUserName] = React.useState('');
+
+            const onBtnGreetClick = () => {
+                setGreetMsg(`Hi ${userName}, Have a nice day!`);
+            };
+
+            const onTxtUserNameInput = (evt) => {
+                setUserName(evt.target.value);
+            };
+            
+            return (
+                <>
+                    <h1>Hello World</h1>
+                    <hr />
+                    <label htmlFor="">User Name:</label>
+                    <input type="text" onInput={onTxtUserNameInput}/>
+                    <button onClick={onBtnGreetClick}>Greet</button>
+                    <div className="highlight">{greetMsg}</div>
+                </>
+            )        
+        }
+    const Calculator = () => {
+            let [input1, setInput1] = React.useState('');
+            let [input2, setInput2] = React.useState('');
+            let [res, setRes] = React.useState('');
+            const buttonHandler = (event) => {
+                if(event.target.innerText == 'Add')
+                    {
+                        setRes(input1+input2)
+                    }
+                else if(event.target.innerText == 'Subtract'){
+                    setRes(input1-input2)
+                }
+                else if(event.target.innerText == 'Multiply'){
+                    setRes(input1*input2)
+                }
+                else{
+                    setRes(input1/input2)
+                }
+            }
+            return(
+                <>
+                <h1>Calculator</h1>
+        <div className="field">
+        <label htmlFor="">Number 1:</label>
+        <input type="number" name="" id="" value={input1} onInput={(event) => setInput1(parseInt(event.target.value))}/>
+        </div>
+        <div className="field">
+        <label htmlFor="">Number 2:</label>
+        <input type="number" name="" id="" value={input2} onInput={(event) => setInput2(parseInt(event.target.value))}/>
+        </div>
+        <br/>
+        <button onClick={buttonHandler}>Add</button>
+        <button onClick={buttonHandler}>Subtract</button>
+        <button onClick={buttonHandler}>Multiply</button>
+        <button onClick={buttonHandler}>Divide</button>
+        <CalculatorResult result={res}/>
+                </>
+            )       
+    }
+    const CalculatorResult = ({result}) => {
+        return(
+            <div className={`result ${result >= 0 && result != '' ? 'positive' : 'negative'}`}>{`Result: ${result}`}</div>
+        )
+    }
+    const App = () => {
+        let [select, setSelect] = React.useState('')
+        return(
+            <>
+        <h1>My App</h1>
+        <button onClick={() => setSelect('Greeter')}>Greeter</button>
+        <button onClick={() => setSelect('Calculator')}>Calculator</button>
+        {select == 'Greeter' && <Greeter/>}
+        {select == 'Calculator' && <Calculator/>}
+        </>
+        )
+    }
+    const rootEle = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootEle); 
+        root.render(<App/>)
+    </script>
+</head>
+<body>
+    <div id="root">
+
+    </div>
+</body>
+</html>
