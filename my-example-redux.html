@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Tracker</title>
+    <!-- 
+        Use Cases:
+        ==================
+        1. Add new bugs
+        2. List the added bugs
+        3. Toggle the 'closed' status of any bug
+        4. Remove any bug
+        5. Remove all 'closed' bugs
+        6. Display stats
+        6b. Refactor the application
+        7. Sort the bugs
+        8. Persist the bugs in the server
+        9. Make the bugs accessible using unique urls (routing)
+        10. Add the projects module and make the bugs related to projects
+     -->
+     <style>
+        body{
+            margin-left: 30px;
+        }
+        section{
+            margin-bottom: 10px;
+        }
+        .closed{
+            font-style: italic;
+            font-weight: bold;
+            text-decoration: line-through;
+            color: red;
+        }
+        .stats, .bugname {
+            font-size: 18pt;
+        }
+        .bugname{
+            cursor: pointer;
+        }
+        .datetime{
+            font-style: italic;
+        }
+        ul{
+            width: 500px;
+            list-style: none;
+            -webkit-padding-start: 0px;
+        }
+        li{
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid gray;
+            background-color: #e7e7e7;
+            border-radius: 10px;
+        }
+
+     </style>
+     <script src="babel.min.js"></script>
+     <script src="react.development.js"></script>
+     <script src="react-dom.development.js"></script>
+     <script src="state-manager.js"></script>
+     <script type="text/babel">
+
+        // TODO : refactor
+        let _currentBugId = 0;
+
+        const bugActionCreators = {
+            addNew(newBugName){
+                const newBug = {
+                    id : ++_currentBugId,
+                    name : newBugName,
+                    isClosed : false,
+                    createdAt : new Date()
+                }
+                const add_bug_action = { type : 'BUGS_ADD', payload : newBug};
+                return add_bug_action;
+            },
+            toggle(bugToToggle){
+                const toggledBug = {...bugToToggle, isClosed : !bugToToggle.isClosed}
+                const replace_bug_action = { type : 'BUGS_REPLACE', payload : toggledBug}
+                return replace_bug_action
+            },
+            remove(bugToRemove){
+                const remove_bug_action = { type : 'BUGS_REMOVE', payload : bugToRemove}
+                return remove_bug_action;
+            },
+            removeClosed(bugs){
+                const openBugs = bugs.filter(bug => !bug.isClosed)
+                const init_bug_action = { type : 'BUGS_INIT', payload : openBugs}
+                return init_bug_action;
+            },
+            sortBugs(sortField){
+                const sort_bugs = {type:'BUGS_SORT', playload: sortField}
+                return sort_bugs;
+            }
+/*             sortBugs(bugs, sortField){
+                const sortBugs = sortField != '' ?  bugs.sort(
+    (p1, p2) => (p1[sortField] < p2[sortField]) ? 1 : (p1[sortField] > p2[sortField]) ? -1 : 0): bugs;
+                const sort_bugs = {type:'BUGS_SORT', playload: sortBugs}
+                return sort_bugs;
+            } */
+        }
+
+        const BugStats = ({count, closedCount}) => {
+            return (
+                <section className="stats">
+                    <span className="closed">{closedCount}</span>
+                    <span> / </span>
+                    <span>{count}</span>
+                </section>
+            )
+        }
+
+        const BugEdit = ({addNew}) => {
+            const [newBugName, setNewBugName] = React.useState(''); 
+            return (
+                <section className="edit">
+                    <label htmlFor="" >Bug Name :</label>
+                    <input type="text" onInput={({ target }) => setNewBugName(target.value)} />
+                    <button onClick={() => addNew(newBugName)} >Add New</button>
+                </section>
+            )
+        }
+
+        const BugSort = ({bugs, sortBugs}) => {
+            const [sortField, setSortField] = React.useState("");
+            const onChangeDropdown = (event) => {
+                setSortField(event.target.value);
+                console.log(sortField);
+                sortBugs(sortField);
+            }
+            return (
+                <section className="sort">
+                    <label htmlFor="">Order By :</label>
+                    <select name="" id="" onChange={(e) => onChangeDropdown(e)}>
+                        <option value="" >--- Select ---</option>
+                        <option value="id">Id</option>
+                        <option value="name">Name</option>
+                        <option value="isClosed">Status</option>
+                        <option value="createdAt">Created</option>
+                    </select>
+                    <label htmlFor="">Descending ?:</label>
+                    <input type="checkbox" name="" id="" />
+                </section>
+                
+            )
+        }
+
+        const BugList = ({bugs, toggle, remove, removeClosed}) => {
+            return (
+                <section className="list">
+                    <ul>
+                        {bugs.map(bug => (
+                            <BugItem key={bug.id} {...{bug, toggle, remove}} />
+                        ))}
+                    </ul>
+                    <button onClick={() => removeClosed(bugs)}>Remove Closed</button>
+                </section>
+            )
+        }
+
+        const BugItem = ({bug, toggle, remove}) => {
+            return (
+                <li>
+                    <span
+                        className={`bugname ${bug.isClosed ? 'closed' : ''}`}
+                        onClick={() => toggle(bug)}
+                    >{bug.name}</span>
+                    <div className="datetime">[{bug.createdAt.toString()}]</div>
+                    <button onClick={() => remove(bug)}>Remove</button>
+                </li>
+            )
+        }
+        const Bugs = ({bugs, addNew, toggle, remove, removeClosed, sortBugs}) => {
+            
+            const closedCount = bugs.reduce((prevResult, bug ) => bug.isClosed ? prevResult + 1 : prevResult, 0)           
+            return (
+                <>
+                    <BugStats count={bugs.length} closedCount={closedCount}/>
+                    <BugEdit addNew={addNew}/>
+                    <BugSort bugs={bugs} sortBugs={sortBugs}/>
+                    <BugList {...{bugs, toggle, remove, removeClosed}} />
+                </>
+            )
+        }
+
+        //For testing UI rendering
+        /* 
+        const initialState = [
+            {
+                id : 1,
+                name : 'Bug-1',
+                isClosed : false,
+                createdAt : new Date()
+            },
+            {
+                id: 2,
+                name: 'Bug-2',
+                isClosed: true,
+                createdAt: new Date()
+            }
+        ] 
+        */
+        const initialState = [];
+        function bugsReducer(currentState = initialState, action){
+            switch (action.type) {
+                case 'BUGS_ADD':
+                    return [...currentState, action.payload];
+                    break;
+                case 'BUGS_REPLACE':
+                    const updatedBug = action.payload;
+                    return currentState.map(bug => bug.id === updatedBug.id ? updatedBug : bug)
+                case 'BUGS_REMOVE':
+                    const bugToRemove = action.payload;
+                    return currentState.filter(bug => bug.id !== bugToRemove.id)
+                case 'BUGS_INIT':
+                    return action.payload;
+                // case 'BUGS_SORT':
+                //     return action.playload;
+                case 'BUGS_SORT':
+                    const sortField = action.playload;
+                    const sortBugs = sortField != '' ?  currentState.sort(
+    (p1, p2) => (p1[sortField] < p2[sortField]) ? 1 : (p1[sortField] > p2[sortField]) ? -1 : 0): currentState;
+                    return sortBugs;
+                default:
+                    break;
+            }
+            return currentState;
+        }
+
+        const store = StateManager.createStore(bugsReducer);
+
+        const bugActionDispatchers = StateManager.bindActionCreators(bugActionCreators, store.dispatch);
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+
+        function renderApp(){
+            const bugs = store.getState();
+            root.render(<Bugs bugs={bugs} {...bugActionDispatchers}/>)
+        }
+        renderApp();
+        store.subscribe(renderApp)
+     </script>
+</head>
+<body>
+    <h1>Bug Tracker</h1>
+    <hr>
+    <div id="root">    
+        
+    </div>
+</body>
+</html>
